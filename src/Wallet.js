@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { ethers } from "ethers";
 
+
+// Demo Public Key : 0x6076ed076160843609a64Ea9B644BaB803A47F68
+// Demo Private Key : 8ab0e70908f71c0d612ca3c79ef546329a5583aaa343913013e1a1df378fdd9f
 const App = () => {
   const [wallet, setWallet] = useState(null); // Store the wallet object
   const [receiver, setReceiver] = useState(""); // Receiver's wallet address
