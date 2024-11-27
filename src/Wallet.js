@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import './Wallet.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
+import Button from 'react-bootstrap/Button';
 import Dropdown from 'react-bootstrap/Dropdown';
 import copy from './assets/copy.svg'
 import swap from './assets/swap.svg'
@@ -24,9 +25,12 @@ const App = () => {
   const [account_no,setAccount_no]=useState(0)
   const [balance,setBalance]=useState(0)
   const [option,setOption]=useState('send')
+  const [chain,setChain]=useState('Ethereum')
+  const [des_chain,setDes_chain]=useState('Ethereum')
   const [txnStatus,setTxnStatus]=useState('none')
+  const [rpc,setRpc]=useState('https://holesky.drpc.org')
 
-  const provider = new ethers.providers.JsonRpcProvider("https://holesky.drpc.org");
+  const provider = new ethers.providers.JsonRpcProvider(rpc);
   // Function to create an account
 
   const calculateInitialBalance=async ()=>{
@@ -104,7 +108,7 @@ const App = () => {
   const importAccount = async () => {
     try {
      
-      const provider = new ethers.providers.JsonRpcProvider("https://holesky.drpc.org");
+     
       const importedWallet = new ethers.Wallet(privateKey);
       
       
@@ -199,15 +203,13 @@ const App = () => {
 
     try {
       // Connect to the Sepolia testnet
-      const sepoliaProvider = new ethers.providers.JsonRpcProvider(
-        "https://holesky.drpc.org"
-      );
+     
       console.log(account.address)
       
       let private_key=localStorage.getItem('private_key') ? JSON.parse(localStorage.getItem('private_key'))[`${account.address}`]:private_keys[`${account.address}`]
       console.log(private_key)
       account = new ethers.Wallet(private_key);
-      const signer = account.connect(sepoliaProvider);
+      const signer = account.connect(provider);
      
 
       // Send transaction
@@ -221,7 +223,7 @@ const App = () => {
       setTxnStatus('pending')
     
 
-      const receipt = await sepoliaProvider.waitForTransaction(tx.hash, 1, 60000); // Wait for 1 confirmation, timeout in 60 seconds
+      const receipt = await provider.waitForTransaction(tx.hash, 1, 60000); // Wait for 1 confirmation, timeout in 60 seconds
      
     if (receipt && receipt.status === 1) {
       console.log("Transaction confirmed and completed!");
@@ -250,6 +252,30 @@ const App = () => {
       <h1>Abs Wallet</h1>
 
       {/* Create Account Section */}
+    <div class="top">
+    {wallet.length!=0 && <Dropdown>
+        <Dropdown.Toggle  variant="outline-dark" id="dropdown-basic">
+        {chain}
+      </Dropdown.Toggle>
+
+      <Dropdown.Menu >
+
+        <Dropdown.Item  onClick={()=>{
+            setChain('Ethereum')
+        }}>Ethereum</Dropdown.Item>
+
+        <Dropdown.Item  onClick={()=>{
+            setChain('Avalanche')
+        }}>Avalanche</Dropdown.Item>
+
+        <Dropdown.Item  onClick={()=>{
+            setChain('Polygon')
+        }}>Polygon</Dropdown.Item>
+      
+      </Dropdown.Menu>
+      
+    </Dropdown>}
+
 
       {wallet.length!=0 && <Dropdown>
       <Dropdown.Toggle variant="success" id="dropdown-basic">
@@ -277,16 +303,16 @@ const App = () => {
         ))}
          <hr></hr>
         
-        <Dropdown.Item  style={{
-           textAlign:'center',
-          padding: "10px 20px",
-          fontSize: "16px",
-          cursor: "pointer",
-          backgroundColor: "#6200ea",
-          color: "white",
-          border: "none",
-          borderRadius: "5px",
-        }} onClick={createAccount}>Create Account</Dropdown.Item>
+        <Dropdown.Item 
+          style={{
+            width:'100%',
+            padding: "10px 20px",
+            fontSize: "16px",
+            backgroundColor:'green',
+            color:'white',
+            cursor: "pointer",
+           
+          }} onClick={createAccount}>Create Account</Dropdown.Item>
        
         <br></br>
         <div>
@@ -294,28 +320,28 @@ const App = () => {
         
         <input
           type="text"
-          placeholder="       Enter Private Key"
+          placeholder="   Enter Private Key"
           style={{width:'100%'}}
           value={privateKey}
           onChange={(e) => setPrivateKey(e.target.value)}
           
         />
         <br></br>
-        <button
+        <Button
           onClick={importAccount}
           style={{
             width:'100%',
             padding: "10px 20px",
             fontSize: "16px",
+            backgroundColor:'green',
+            color:'white',
             cursor: "pointer",
-            backgroundColor: "#6200ea",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-          }}
+            borderRadius:'0'
+           
+          }} 
         >
           Import Account
-        </button>
+        </Button>
       </div>
       </Dropdown.Menu>
 
@@ -324,23 +350,26 @@ const App = () => {
 
     <ToastContainer />
     
-    {wallet.length==0 && <div> <button
+    {wallet.length==0 && <div> <Button
+
+     size="lg"
         onClick={createAccount}
         style={{
-          padding: "10px 20px",
-          fontSize: "16px",
-          cursor: "pointer",
-          backgroundColor: "#6200ea",
-          color: "white",
-          border: "none",
-          borderRadius: "5px",
-        }}
+           
+           
+           
+            cursor: "pointer",
+           
+           
+          }} 
       >
         Create Account
-      </button>
+      </Button>
+<br></br><br></br>
+or
 <br></br>
       <div style={{ marginTop: "30px" }}>
-        <h3>Import Account</h3>
+       
         <input
           type="text"
           placeholder="Enter Private Key"
@@ -349,24 +378,27 @@ const App = () => {
           style={{ width: "300px", padding: "10px", margin: "10px" }}
         />
         <br />
-        <button
+        <Button
+         size="lg"
           onClick={importAccount}
           style={{
-            padding: "10px 20px",
-            fontSize: "16px",
+           
+          
+           
             cursor: "pointer",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-          }}
+            
+           
+          }} 
         >
           Import Account
-        </button>
+        </Button>
       </div>
       
       </div>
       }
+     
+
+    </div>
      
 
 
@@ -414,58 +446,37 @@ const App = () => {
 
 </div>
       
-      {
-        localStorage.getItem('wallet')  && wallet.length==0 && option=='send' &&  (
-            <div>
-         
-
-            <h3>Send</h3>
-          {/* Receiver Address Input */}
-          <input
-            type="text"
-            placeholder="Receiver's Address"
-            value={receiver}
-            onChange={(e) => setReceiver(e.target.value)}
-            style={{ width: "300px", padding: "10px", margin: "10px" }}
-          />
-          <br />
-          {/* Amount Input */}
-          <input
-            type="text"
-            placeholder="Amount in Ether"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            style={{ width: "300px", padding: "10px", margin: "10px" }}
-          />
-          <br />
-          <button
-            onClick={
-                ()=>{
-                    sendEther(JSON.parse(localStorage.getItem('wallet'))[account_no])
-                }
-               }
-            style={{
-              padding: "10px 20px",
-              fontSize: "16px",
-              cursor: "pointer",
-              backgroundColor: "#4caf50",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-            }}
-          >
-            Send 
-          </button>
-            </div>
-            
-            )
-      }
+     
       {wallet[account_no] && option=='send' &&  (
         <div style={{ marginTop: "30px" }}>
        
 
           <h3>Send </h3>
           {/* Receiver Address Input */}
+        
+          <Dropdown > 
+      <Dropdown.Toggle style={{ width: "300px", padding: "10px" }} variant="primary" id="dropdown-basic">
+        {des_chain}
+      </Dropdown.Toggle>
+
+      <Dropdown.Menu style={{ width: "300px", padding: "10px", margin: "10px" }}>
+
+        <Dropdown.Item style={{ width: "300px", padding: "10px", margin: "10px" }} onClick={()=>{
+            setDes_chain('Ethereum')
+        }}>Ethereum</Dropdown.Item>
+
+        <Dropdown.Item style={{ width: "300px", padding: "10px", margin: "10px" }} onClick={()=>{
+            setDes_chain('Avalanche')
+        }}>Avalanche</Dropdown.Item>
+
+        <Dropdown.Item style={{ width: "300px", padding: "10px", margin: "10px" }} onClick={()=>{
+           setDes_chain('Polygon')
+        }}>Polygon</Dropdown.Item>
+      
+      </Dropdown.Menu>
+
+    </Dropdown>
+     
           <input
             type="text"
             placeholder="Receiver's Address"
