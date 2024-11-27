@@ -128,7 +128,7 @@ const App = () => {
 
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
+    <div style={{ textAlign: "center", marginTop: "50px" ,  fontFamily: "'Comic Neue', cursive", fontSize: "20px" }}>
       <h1>Abs Wallet</h1>
 
       {/* Create Account Section */}
@@ -292,7 +292,7 @@ const App = () => {
 
     </div>
 
-
+    
 
 </div>
       
