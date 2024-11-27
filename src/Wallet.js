@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import './Wallet.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -17,6 +17,7 @@ import 'react-toastify/dist/ReactToastify.css';
 // Demo Private Key : 8ab0e70908f71c0d612ca3c79ef546329a5583aaa343913013e1a1df378fdd9f
 const App = () => {
   const [wallet, setWallet] = useState(localStorage.getItem('wallet')? JSON.parse(localStorage.getItem('wallet')):[]) // Store the wallet object
+  const [private_keys,setPrivate_keys]=useState(localStorage.getItem('private_key')?JSON.parse(localStorage.getItem('private_key')):{})
   const [receiver, setReceiver] = useState(""); // Receiver's wallet address
   const [amount, setAmount] = useState(""); // Amount to send in Ether
   const [privateKey, setPrivateKey] = useState(""); // For importing an account
@@ -24,7 +25,31 @@ const App = () => {
   const [balance,setBalance]=useState(0)
   const [option,setOption]=useState('send')
   const [txnStatus,setTxnStatus]=useState('none')
+
+  const provider = new ethers.providers.JsonRpcProvider("https://holesky.drpc.org");
   // Function to create an account
+
+  const calculateInitialBalance=async ()=>{
+
+    const balanceWei = await provider.getBalance(JSON.parse(localStorage.getItem('wallet'))[JSON.parse(localStorage.getItem('wallet')).length-1].address);
+      
+    const balanceEther = ethers.utils.formatEther(balanceWei);
+  
+    setAccount_no(JSON.parse(localStorage.getItem('wallet')).length-1)
+    setBalance(balanceEther)
+
+  }
+
+  useEffect( ()=>{
+
+    if(localStorage.getItem('wallet'))
+    {
+       calculateInitialBalance()
+       
+    }
+    
+  },[])
+ 
   const createAccount = async () => {
     try {
       const newWallet = ethers.Wallet.createRandom();
@@ -32,12 +57,43 @@ const App = () => {
       alert(
         `Account Created!\n\nPrivate Key: ${newWallet.privateKey}\nPublic Key (Address): ${newWallet.address}`
       );
-      localStorage.setItem('private_key',newWallet.privateKey)
+      
       localStorage.setItem('wallet',JSON.stringify([...wallet,newWallet]))
-      const provider = new ethers.providers.JsonRpcProvider("https://holesky.drpc.org");
-      const balanceWei = await provider.getBalance(newWallet.address);
-      const balanceEther = ethers.utils.formatEther(balanceWei);
-      setBalance(balanceEther)
+
+     
+
+      if(localStorage.getItem('private_key'))
+        {
+          alert('if')
+          let newPrivate_keys=JSON.parse(localStorage.getItem('private_key'))
+          newPrivate_keys[`${newWallet.address}`]=newWallet.privateKey;
+  
+          localStorage.setItem('private_key',JSON.stringify(newPrivate_keys))
+          setPrivate_keys(newPrivate_keys)
+          window.location.reload()
+        }
+        else
+        {
+            alert('58')
+          let newPrivate_keys={}
+          alert('60')
+          newPrivate_keys[`${newWallet.address}`]=newWallet.privateKey
+          alert('62')
+          localStorage.setItem('private_key',JSON.stringify(newPrivate_keys))
+          alert('64')
+          setPrivate_keys(newPrivate_keys)
+          alert('66')
+          window.location.reload()
+          alert('68')
+        }
+        alert('70')
+   
+
+    
+   
+    
+     
+     
     } catch (error) {
       console.error("Error creating account:", error);
       alert("Failed to create account.");
@@ -50,13 +106,69 @@ const App = () => {
      
       const provider = new ethers.providers.JsonRpcProvider("https://holesky.drpc.org");
       const importedWallet = new ethers.Wallet(privateKey);
-      localStorage.setItem('private_key',privateKey)
+      
+      
       localStorage.setItem('wallet',JSON.stringify([...wallet,importedWallet]))
+      
       setWallet([...wallet,importedWallet]);
-      const balanceWei = await provider.getBalance(importedWallet.address);
-      const balanceEther = ethers.utils.formatEther(balanceWei);
-      setBalance(balanceEther)
-      alert(`Account Imported!\nAddress: ${importedWallet.address}`);
+
+      alert('above if')
+      if(localStorage.getItem('private_key'))
+      {
+        alert('if')
+        let newPrivate_keys=JSON.parse(localStorage.getItem('private_key'))
+        newPrivate_keys[`${importedWallet.address}`]=importedWallet.privateKey;
+
+        localStorage.setItem('private_key',JSON.stringify(newPrivate_keys))
+        setPrivate_keys(newPrivate_keys)
+        window.location.reload()
+      }
+      else
+      {
+       
+        let newPrivate_keys={}
+        
+        newPrivate_keys[`${importedWallet.address}`]=privateKey
+       
+        localStorage.setItem('private_key',JSON.stringify(newPrivate_keys))
+       
+        setPrivate_keys(newPrivate_keys)
+       
+        window.location.reload()
+      }
+     
+      
+
+      
+
+     
+   
+     
+    //   if(!localStorage.getItem('private_key'))
+    //     {
+         
+    //       let newPrivate_keys=private_keys
+          
+    //       newPrivate_keys[`${importedWallet.address}`]=importedWallet.privateKey
+        
+    //       setPrivate_keys(newPrivate_keys)
+         
+    //       localStorage.setItem('private_key',JSON.stringify(newPrivate_keys))
+         
+        
+       
+    //     }
+    //     else
+    //     {
+    //       let newPrivate_keys=JSON.parse(localStorage.getItem('private_key'))
+    //       newPrivate_keys[`${importedWallet.address}`]=importedWallet.privateKey
+    //       setPrivate_keys(newPrivate_keys)
+    //       localStorage.setItem('private_key',JSON.stringify(newPrivate_keys))
+         
+      
+    //     }
+    
+      
     } catch (error) {
       console.error("Error importing account:", error);
       alert("Invalid private key. Please try again.");
@@ -90,7 +202,13 @@ const App = () => {
       const sepoliaProvider = new ethers.providers.JsonRpcProvider(
         "https://holesky.drpc.org"
       );
+      console.log(account.address)
+      
+      let private_key=localStorage.getItem('private_key') ? JSON.parse(localStorage.getItem('private_key'))[`${account.address}`]:private_keys[`${account.address}`]
+      console.log(private_key)
+      account = new ethers.Wallet(private_key);
       const signer = account.connect(sepoliaProvider);
+     
 
       // Send transaction
       const tx = await signer.sendTransaction({
@@ -144,8 +262,8 @@ const App = () => {
             <div class="accountDropDown">
             <div onClick={async()=>{
             setAccount_no(index)
-            const provider = new ethers.providers.JsonRpcProvider("https://holesky.drpc.org");
-            const balanceWei = await provider.getBalance(wallet[account_no].address);
+          
+            const balanceWei = await provider.getBalance(wallet[index].address);
             const balanceEther = ethers.utils.formatEther(balanceWei);
             setBalance(balanceEther)
           }}> {acc.address.slice(0,6)+"..."+acc.address.slice(-5)} </div>
@@ -392,6 +510,8 @@ const App = () => {
         }} src={refresh}></img>
 
         </div>}
+        <br></br>
+       
     </div>
   );
 };
