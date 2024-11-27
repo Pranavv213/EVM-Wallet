@@ -5,6 +5,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Dropdown from 'react-bootstrap/Dropdown';
 import copy from './assets/copy.svg'
 import swap from './assets/swap.svg'
+import send from './assets/send.svg'
+import stake from './assets/stake.svg'
+import refresh from './assets/refresh.svg'
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -19,6 +22,8 @@ const App = () => {
   const [privateKey, setPrivateKey] = useState(""); // For importing an account
   const [account_no,setAccount_no]=useState(0)
   const [balance,setBalance]=useState(0)
+  const [option,setOption]=useState('send')
+  const [txnStatus,setTxnStatus]=useState('none')
   // Function to create an account
   const createAccount = async () => {
     try {
@@ -68,9 +73,9 @@ const App = () => {
 
 
   // Function to send Ether
-  const sendEther = async (wallet) => {
+  const sendEther = async (account) => {
     
-    if (!wallet) {
+    if (!account) {
       alert("Please create or import a wallet first.");
       return;
     }
@@ -85,7 +90,7 @@ const App = () => {
       const sepoliaProvider = new ethers.providers.JsonRpcProvider(
         "https://holesky.drpc.org"
       );
-      const signer = wallet.connect(sepoliaProvider);
+      const signer = account.connect(sepoliaProvider);
 
       // Send transaction
       const tx = await signer.sendTransaction({
@@ -93,10 +98,30 @@ const App = () => {
         value: ethers.utils.parseEther(amount), // Convert Ether to Wei
       });
 
-      alert(`Transaction sent! TX Hash: ${tx.hash}`);
+
+      toast.warning(`Transaction sent! TX Hash: ${tx.hash}`)
+      setTxnStatus('pending')
+    
+
+      const receipt = await sepoliaProvider.waitForTransaction(tx.hash, 1, 60000); // Wait for 1 confirmation, timeout in 60 seconds
+     
+    if (receipt && receipt.status === 1) {
+      console.log("Transaction confirmed and completed!");
+      setTxnStatus('Txn Hash '+ tx.hash)
+      toast.success('Transaction Completed !')
+    } else if (receipt && receipt.status === 0) {
+      toast.error("Transaction failed")
+      console.log("Transaction failed!");
+      setTxnStatus('Txn Failed')
+    } else {
+      console.log("Transaction status unknown!");
+    }
+
     } catch (error) {
       console.error("Error sending Ether:", error);
-      alert("Transaction failed. Check the console for details.");
+      setTxnStatus('Txn Failed')
+      toast.error("Transaction failed")
+   
     }
   };
 
@@ -236,13 +261,47 @@ const App = () => {
 
 
 <h3>{wallet.length!=0 && balance}</h3>
+<br></br>
+<div class="options">
+    <div>
+    <img onClick={()=>{
+        setOption('swap')
+    }} style={{width:'3em'}} src={swap}></img>
+    <br></br>
+    Swap
+
+    </div>
+
+    <div>
+    <img  onClick={()=>{
+        setOption('stake')
+    }} style={{width:'3em'}} src={stake}></img>
+    <br></br>
+
+    Stake
+
+    </div>
+
+    <div>
+    <img  onClick={()=>{
+        setOption('send')
+    }} style={{width:'3em'}} src={send}></img>
+    <br></br>
+
+    Send
+
+    </div>
+
+
+
+</div>
       
       {
-        localStorage.getItem('wallet')  && wallet.length==0 &&  (
+        localStorage.getItem('wallet')  && wallet.length==0 && option=='send' &&  (
             <div>
          
 
-            <h3>Send Ether</h3>
+            <h3>Send</h3>
           {/* Receiver Address Input */}
           <input
             type="text"
@@ -277,17 +336,17 @@ const App = () => {
               borderRadius: "5px",
             }}
           >
-            Send Ether
+            Send 
           </button>
             </div>
             
             )
       }
-      {wallet[account_no] && (
+      {wallet[account_no] && option=='send' &&  (
         <div style={{ marginTop: "30px" }}>
        
 
-          <h3>Send Ether</h3>
+          <h3>Send </h3>
           {/* Receiver Address Input */}
           <input
             type="text"
@@ -320,10 +379,19 @@ const App = () => {
               borderRadius: "5px",
             }}
           >
-            Send Ether
+            Send 
           </button>
         </div>
       )}
+      <hr></hr>
+      <br></br>
+      {txnStatus!='none' && <div>
+        {txnStatus}
+        <img style={{width:'2em'}} onClick={()=>{
+             window.location.reload();
+        }} src={refresh}></img>
+
+        </div>}
     </div>
   );
 };
